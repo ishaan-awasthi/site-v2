@@ -25,7 +25,7 @@ export default function Home() {
           </span>
         </div>
 
-        <div className="font-(family-name:--font-pp-neue-montreal-light) text-black text-lg md:text-2xl lg:text-4xl space-x-4 md:space-x-12 lg:space-x-18 pointer-events-auto">
+        <div className="font-(family-name:--font-pp-neue-montreal-light) text-black text-sm md:text-2xl lg:text-4xl space-x-4 md:space-x-12 lg:space-x-18 pointer-events-auto">
           <a href="https://www.linkedin.com/in/ishaan-awasthi-2b541227b" target="_blank" rel="noopener noreferrer" className="hover:underline transition-all">
             linkedin
           </a>
