@@ -32,7 +32,7 @@ export default function FloatingImage({ project }: FloatingImageProps) {
   const [stableValues] = useState(() => ({
     backgroundSize: 60, // Default for SSR
     foregroundSize: 225, // Default for SSR
-    backgroundBrightness: 0.91, // Default for SSR
+    backgroundBrightness: 0.6, // Default for SSR
   }));
 
   // Update random values after mount
@@ -40,7 +40,7 @@ export default function FloatingImage({ project }: FloatingImageProps) {
     setMounted(true);
     stableValues.backgroundSize = 40 + Math.random() * 40;
     stableValues.foregroundSize = 150 + Math.random() * 150;
-    stableValues.backgroundBrightness = 0.90 + Math.random() * 0.03;
+    stableValues.backgroundBrightness = 0.6;
   }, [stableValues]);
 
   const size = depth === "foreground" ? stableValues.foregroundSize : stableValues.backgroundSize;
@@ -64,9 +64,9 @@ export default function FloatingImage({ project }: FloatingImageProps) {
         const chosenDepth: DepthLevel = Math.random() > 0.5 ? "foreground" : "background";
         const chosenSize = chosenDepth === "foreground" ? stableValues.foregroundSize : stableValues.backgroundSize;
         const startSide = Math.random() > 0.5 ? "left" : "right";
-        // Add 10% padding from top and bottom
-        const yPadding = viewportHeight * 0.1;
-        const yRange = viewportHeight * 0.8;
+        // Full screen height with no padding
+        const yPadding = 0;
+        const yRange = viewportHeight;
         const y1 = yPadding + Math.random() * yRange;
         const y2 = yPadding + Math.random() * yRange;
         const startX = startSide === "left" ? -chosenSize - 50 : viewportWidth + 50;
@@ -78,7 +78,7 @@ export default function FloatingImage({ project }: FloatingImageProps) {
         }
 
         // Randomly choose speed (lower divisor = faster)
-        const randomSpeed = 30 + Math.random() * 20; // 30-50
+        const randomSpeed = 30 + Math.random() * 50; // 30-80
         setSpeedDivisor(randomSpeed);
 
         // Update depth and targets
