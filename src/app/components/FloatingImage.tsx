@@ -1,6 +1,6 @@
 "use client";
 
-import { motion, useAnimation } from "framer-motion";
+import { motion, useAnimation, useMotionValue } from "framer-motion";
 import { useState, useEffect, useMemo } from "react";
 import Image from "next/image";
 import type { ProjectImage } from "../data";
@@ -13,6 +13,8 @@ type DepthLevel = "foreground" | "background";
 
 export default function FloatingImage({ project }: FloatingImageProps) {
   const controls = useAnimation();
+  const x = useMotionValue(0);
+  const y = useMotionValue(0);
   const [isHovered, setIsHovered] = useState(false);
   const [tooltipBelow, setTooltipBelow] = useState(true);
   const [currentPosition, setCurrentPosition] = useState({ x: 0, y: 0 });
@@ -90,6 +92,8 @@ export default function FloatingImage({ project }: FloatingImageProps) {
         const duration = distance / randomSpeed;
 
         // Set start position
+        x.set(startX);
+        y.set(y1);
         await controls.set({
           x: startX,
           y: y1,
@@ -97,6 +101,18 @@ export default function FloatingImage({ project }: FloatingImageProps) {
 
         setCurrentPosition({ x: startX, y: y1 });
         setIsAnimating(true);
+
+        // Subscribe to motion value changes to track position
+        const unsubscribeX = x.on("change", (latestX) => {
+          const latestY = y.get();
+          setCurrentPosition({ x: latestX, y: latestY });
+          setTooltipBelow(latestY < viewportHeight / 2);
+        });
+        const unsubscribeY = y.on("change", (latestY) => {
+          const latestX = x.get();
+          setCurrentPosition({ x: latestX, y: latestY });
+          setTooltipBelow(latestY < viewportHeight / 2);
+        });
 
         // Animate to end position
         await controls.start({
@@ -106,13 +122,15 @@ export default function FloatingImage({ project }: FloatingImageProps) {
             duration: duration,
             ease: "linear",
           },
-          onUpdate: (latest: any) => {
-            if (latest.x !== undefined && latest.y !== undefined) {
-              setCurrentPosition({ x: latest.x, y: latest.y });
-              setTooltipBelow(latest.y < viewportHeight / 2);
-            }
-          },
         });
+
+        // Update motion values
+        x.set(endX);
+        y.set(y2);
+
+        // Unsubscribe
+        unsubscribeX();
+        unsubscribeY();
 
         setIsAnimating(false);
       }
@@ -136,6 +154,18 @@ export default function FloatingImage({ project }: FloatingImageProps) {
         );
         const remainingDuration = remainingDistance / speedDivisor;
 
+        // Subscribe to motion value changes
+        const unsubscribeX = x.on("change", (latestX) => {
+          const latestY = y.get();
+          setCurrentPosition({ x: latestX, y: latestY });
+          setTooltipBelow(latestY < viewportHeight / 2);
+        });
+        const unsubscribeY = y.on("change", (latestY) => {
+          const latestX = x.get();
+          setCurrentPosition({ x: latestX, y: latestY });
+          setTooltipBelow(latestY < viewportHeight / 2);
+        });
+
         // Resume animation to target
         await controls.start({
           x: targetX,
@@ -144,13 +174,15 @@ export default function FloatingImage({ project }: FloatingImageProps) {
             duration: Math.max(remainingDuration, 1),
             ease: "linear",
           },
-          onUpdate: (latest: any) => {
-            if (latest.x !== undefined && latest.y !== undefined) {
-              setCurrentPosition({ x: latest.x, y: latest.y });
-              setTooltipBelow(latest.y < viewportHeight / 2);
-            }
-          },
         });
+
+        // Update motion values
+        x.set(targetX);
+        y.set(targetY);
+
+        // Unsubscribe
+        unsubscribeX();
+        unsubscribeY();
       };
 
       resumeAnimation();
