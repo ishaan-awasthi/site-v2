@@ -10,7 +10,7 @@ warriorhacks - warriorhacks image - a new kind of high school hackathon - https:
 
 oddity - album cover - an indie rock album about graduating high school - https://open.spotify.com/album/0BFrHdIbibaEccqQizGVtP?si=BcAFW0Y-T-qm_Wd39fEdtg
 
-poetry - pen paper - poems and writings - https://instagram.com/veryishaan
+poetry - pen paper - poems and writings - https://instagram.com/alsoishaan
 
 COOK - bird - a programming language where code looks like recipes - https://github.com/ishaan-awasthi/COOK
 

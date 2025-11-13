@@ -46,7 +46,7 @@ export const projectImages: ProjectImage[] = [
     id: "penpaper",
     filename: "penpaper.jpg",
     tagline: "poems and writings",
-    link: "https://instagram.com/veryishaan",
+    link: "https://instagram.com/alsoishaan",
   },
   {
     id: "bird",

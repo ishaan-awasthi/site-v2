@@ -42,7 +42,7 @@ export default function Home() {
             twitter
           </a>
 
-          <a href="https://www.instagram.com/veryishaan/" target="_blank" rel="noopener noreferrer" className="hover:underline transition-all">
+          <a href="https://www.instagram.com/alsoishaan/" target="_blank" rel="noopener noreferrer" className="hover:underline transition-all">
             instagram
           </a>
 

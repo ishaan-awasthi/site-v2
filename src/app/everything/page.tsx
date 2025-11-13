@@ -44,7 +44,7 @@ const items: Item[] = [
   {
     name: "poetry",
     tooltip: "poems and writings",
-    url: "https://instagram.com/veryishaan",
+    url: "https://instagram.com/alsoishaan",
   },
   {
     name: "COOK",
