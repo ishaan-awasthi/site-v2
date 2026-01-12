@@ -19,9 +19,12 @@ export default function Home() {
         className="fixed inset-0 flex flex-col items-center justify-center gap-0 pointer-events-none"
         style={{ zIndex: 0 }}
       >
-        <div className="flex flex-col items-center -mt-16">
-          <span className="font-(family-name:--font-pp-neue-montreal-bold) tracking-[-.13em] text-black text-[8rem] md:text-[16rem] lg:text-[26rem] select-none pointer-events-none">
+        <div className="relative flex items-center justify-center -mt-16">
+          <span className="font-(family-name:--font-pp-neue-montreal-bold) tracking-[-.13em] text-black text-[8rem] md:text-[16rem] lg:text-[26rem] select-none pointer-events-none relative z-0">
             ishaan!
+          </span>
+          <span className="absolute font-(family-name:--font-windsong) text-white text-[4rem] md:text-[8rem] lg:text-[18rem] select-none pointer-events-none z-10 translate-y-24 -translate-x-6">
+            awasthi
           </span>
         </div>
 

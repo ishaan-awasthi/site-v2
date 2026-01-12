@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
+import { WindSong } from "next/font/google";
 import "./globals.css";
 
 const ppNeueMontrealBold = localFont({
@@ -11,6 +12,12 @@ const ppNeueMontrealBold = localFont({
 const ppNeueMontrealThin = localFont({
   src: "../../public/OTF/PPNeueMontreal-Thin.otf",
   variable: "--font-pp-neue-montreal-thin",
+  display: "swap",
+});
+
+const windSong = WindSong({
+  weight: ["400", "500"],
+  variable: "--font-windsong",
   display: "swap",
 });
 
@@ -26,7 +33,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${ppNeueMontrealBold.variable} ${ppNeueMontrealThin.variable}`}>
+    <html lang="en" className={`${ppNeueMontrealBold.variable} ${ppNeueMontrealThin.variable} ${windSong.variable}`}>
       <body>{children}</body>
     </html>
   );
