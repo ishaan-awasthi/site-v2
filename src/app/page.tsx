@@ -12,6 +12,9 @@ type GridItem = {
 
 const BRIGHT_COLORS = ["#FF0000", "#00FF00", "#00FFFF", "#FFFF00", "#FF00FF", "#FFA500"]; // red, green, aqua, yellow, magenta, orange
 
+// 6x4 grid: edge indices (16 squares) = top row, bottom row, left col middle, right col middle
+const EDGE_INDICES = [0, 1, 2, 3, 4, 5, 6, 11, 12, 17, 18, 19, 20, 21, 22, 23];
+
 export default function Home() {
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
   const [tooltipIndex, setTooltipIndex] = useState<number | null>(null);
@@ -21,23 +24,32 @@ export default function Home() {
   const emailTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const emailLinkRef = useRef<HTMLAnchorElement | null>(null);
   const [emailPosition, setEmailPosition] = useState<{ left: number; top: number; width: number } | null>(null);
+  const gridRef = useRef<HTMLDivElement | null>(null);
+  const hoveredIndexRef = useRef<number | null>(null);
+  const rafIdRef = useRef<number | null>(null);
+  const gridDataRef = useRef<GridItem[]>([]);
+
+  useEffect(() => {
+    gridDataRef.current = grid;
+  }, [grid]);
 
   useEffect(() => {
     const items: GridItem[] = [];
     const totalSquares = 24; // 6x4 grid
     const imageIndices = new Set<number>();
-    
-    // Randomly select positions for images (we have 10 images, so use all of them)
-    while (imageIndices.size < projectImages.length && imageIndices.size < totalSquares) {
-      const randomIndex = Math.floor(Math.random() * totalSquares);
-      imageIndices.add(randomIndex);
+
+    // Shuffle edge indices and pick positions for images (only on edges, max 10 images)
+    const shuffledEdges = [...EDGE_INDICES].sort(() => Math.random() - 0.5);
+    const numImages = Math.min(projectImages.length, EDGE_INDICES.length);
+    for (let i = 0; i < numImages; i++) {
+      imageIndices.add(shuffledEdges[i]);
     }
-    
-    // Shuffle images for random assignment
+
+    // Shuffle images for random assignment to those positions
     const shuffledImages = [...projectImages].sort(() => Math.random() - 0.5);
     const imagePositions = Array.from(imageIndices);
-    
-    // Create grid items
+
+    // Create grid items: middle 8 are always colors; edges are image or color
     for (let i = 0; i < totalSquares; i++) {
       if (imageIndices.has(i)) {
         const imageArrayIndex = imagePositions.indexOf(i);
@@ -52,41 +64,79 @@ export default function Home() {
         });
       }
     }
-    
+
     setGrid(items);
   }, []);
+
+  useEffect(() => {
+    const gridEl = gridRef.current;
+    if (!gridEl) return;
+
+    const onMouseMove = (e: MouseEvent) => {
+      const rect = gridEl.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      if (x < 0 || x >= rect.width || y < 0 || y >= rect.height) {
+        hoveredIndexRef.current = null;
+      } else {
+        const col = Math.min(5, Math.max(0, Math.floor((x / rect.width) * 6)));
+        const row = Math.min(3, Math.max(0, Math.floor((y / rect.height) * 4)));
+        hoveredIndexRef.current = row * 6 + col;
+      }
+
+      if (rafIdRef.current == null) {
+        rafIdRef.current = requestAnimationFrame(() => {
+          rafIdRef.current = null;
+          const idx = hoveredIndexRef.current;
+          setHoveredIndex(idx);
+          const items = gridDataRef.current;
+          if (tooltipTimeoutRef.current) {
+            clearTimeout(tooltipTimeoutRef.current);
+            tooltipTimeoutRef.current = null;
+          }
+          if (idx != null && idx < items.length && items[idx]?.type === "image") {
+            tooltipTimeoutRef.current = setTimeout(() => setTooltipIndex(idx), 1000);
+          } else {
+            setTooltipIndex(null);
+          }
+        });
+      }
+    };
+
+    const onMouseLeave = () => {
+      hoveredIndexRef.current = null;
+      if (rafIdRef.current != null) {
+        cancelAnimationFrame(rafIdRef.current);
+        rafIdRef.current = null;
+      }
+      setHoveredIndex(null);
+      if (tooltipTimeoutRef.current) {
+        clearTimeout(tooltipTimeoutRef.current);
+        tooltipTimeoutRef.current = null;
+      }
+      setTooltipIndex(null);
+    };
+
+    document.addEventListener("mousemove", onMouseMove, { passive: true });
+    gridEl.addEventListener("mouseleave", onMouseLeave);
+    return () => {
+      document.removeEventListener("mousemove", onMouseMove);
+      gridEl.removeEventListener("mouseleave", onMouseLeave);
+      if (rafIdRef.current != null) cancelAnimationFrame(rafIdRef.current);
+    };
+  }, [grid.length]);
 
   return (
     <main className="relative min-h-screen overflow-hidden bg-white">
       {/* Grid */}
-      <div className="grid grid-cols-6 grid-rows-4 h-screen w-screen">
+      <div
+        ref={gridRef}
+        className="grid grid-cols-6 grid-rows-4 h-screen w-screen"
+      >
         {grid.length > 0 && grid.map((item, index) => {
           const isHovered = hoveredIndex === index;
           const showTooltip = tooltipIndex === index && item.type === "image";
-          
-          const handleMouseEnter = () => {
-            setHoveredIndex(index);
-            if (item.type === "image") {
-              // Clear any existing timeout
-              if (tooltipTimeoutRef.current) {
-                clearTimeout(tooltipTimeoutRef.current);
-              }
-              // Set tooltip after 1 second
-              tooltipTimeoutRef.current = setTimeout(() => {
-                setTooltipIndex(index);
-              }, 1000);
-            }
-          };
-          
-          const handleMouseLeave = () => {
-            setHoveredIndex(null);
-            if (tooltipTimeoutRef.current) {
-              clearTimeout(tooltipTimeoutRef.current);
-              tooltipTimeoutRef.current = null;
-            }
-            setTooltipIndex(null);
-          };
-          
+
           return (
             <div
               key={index}
@@ -95,8 +145,6 @@ export default function Home() {
                 opacity: isHovered ? 0.6 : 0,
                 transform: isHovered ? 'scale(1.05)' : 'scale(1)',
               }}
-              onMouseEnter={handleMouseEnter}
-              onMouseLeave={handleMouseLeave}
             >
               {item.type === "image" && item.image ? (
                 <a
@@ -120,15 +168,22 @@ export default function Home() {
                 />
               )}
               
-              {/* Subtle tooltip */}
+              {/* Hover overlay: full blur covering whole image */}
               {showTooltip && item.image && (
-                <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-20">
-                  <div className="bg-black/70 text-white text-[10px] px-2 py-1 backdrop-blur-sm w-full h-full flex items-center justify-center opacity-0 animate-[fadeIn_0.2s_ease-out_forwards]">
-                    <span className="font-(family-name:--font-pp-neue-montreal-light) text-center">
+                <>
+                  <div
+                    className="absolute inset-0 bg-black/70 backdrop-blur-sm pointer-events-none z-20 opacity-0 animate-[fadeIn_0.2s_ease-out_forwards]"
+                    aria-hidden
+                  />
+                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-20 p-2">
+                    <span
+                      className="font-(family-name:--font-pp-neue-montreal-light) text-white text-[10px] text-center max-w-[50%] leading-tight opacity-0 animate-[fadeIn_0.2s_ease-out_forwards]"
+                      style={{ wordBreak: "break-word" }}
+                    >
                       {item.image.tagline}
                     </span>
                   </div>
-                </div>
+                </>
               )}
             </div>
           );
